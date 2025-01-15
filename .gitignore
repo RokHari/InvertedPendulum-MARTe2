@@ -1,0 +1,11 @@
+Build/
+*.a
+*.gcda
+*.gcno
+*.o
+*.so
+.cproject
+.autotools
+.project
+.settings/
+depends*.x86-linux
