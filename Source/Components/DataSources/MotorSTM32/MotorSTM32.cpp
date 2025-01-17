@@ -41,7 +41,8 @@ const MARTe::uint32 kStatusMetadataSize = 4;
 
 MotorSTM32::MotorSTM32() : DataSourceI(),
                            serialFd(0),
-						   data(0),
+                           command(0),
+                           commandParameter(0),
 						   statusBuffer(NULL_PTR(MARTe::uint8*)),
 						   statusBufferSize(0) {
     struct sched_param sp;
@@ -164,7 +165,10 @@ bool MotorSTM32::GetSignalMemoryBuffer(const MARTe::uint32 signalIdx,
         signalAddress = reinterpret_cast<void *>(statusBuffer + kStatusMetadataSize);
     }
     if (signalIdx == 1u) {
-        signalAddress = reinterpret_cast<void *>(&data);
+        signalAddress = reinterpret_cast<void *>(&command);
+    }
+    if (signalIdx == 2u) {
+        signalAddress = reinterpret_cast<void *>(&commandParameter);
     }
     
     return signalAddress != NULL;
@@ -213,9 +217,9 @@ bool MotorSTM32::SetConfiguredDatabase(MARTe::StructuredDataI& data) {
     bool ok = DataSourceI::SetConfiguredDatabase(data);
     
     if (ok) {
-        ok = (GetNumberOfSignals() == 2u);
+        ok = (GetNumberOfSignals() == 3u);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Exatly 2 signals shall be defined.");
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Exactly 3 signals shall be defined.");
         }
     }
     if (ok) {
@@ -237,9 +241,17 @@ bool MotorSTM32::SetConfiguredDatabase(MARTe::StructuredDataI& data) {
         }
     }
     if (ok) {
-		ok = (GetSignalType(1u) == MARTe::SignedInteger32Bit);
+        ok = (GetSignalType(1u) == MARTe::UnsignedInteger8Bit);
+        if (!ok) {
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Second signal shall be of type "
+                    "uint8");
+        }
+    }
+
+    if (ok) {
+		ok = (GetSignalType(2u) == MARTe::SignedInteger32Bit);
 		if (!ok) {
-			REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Second signal shall be of type "
+			REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Third signal shall be of type "
 					"int32");
 		}
     }
@@ -258,78 +270,60 @@ bool MotorSTM32::RxSynchronise() {
 	dataBuff[0] = 253;
 	// Set device ID.
 	dataBuff[1] = 0;
+
+	// TODO create write function that retries if not everything is sent
     /*int ret = */write(serialFd, dataBuff, sizeof(dataBuff));
 
-    /*ret =*/ read(serialFd, statusBuffer, statusBufferSize);
+    bool ok = ReadSerialConnection(statusBuffer, statusBufferSize);
 
-    return true;
-/*
-    static MARTe::uint32 counter = 0;
-    
-    //TODO
-    while (1) {
-    	const MARTe::uint32 kBufferSize = 256;
-    	MARTe::uint8 temp_rx_buffer[kBufferSize] ; //temp_rx_buffer[STM32_BUFSIZE];
-        
-        // Blocking read
-        int ret = read(serialFd, temp_rx_buffer, sizeof(temp_rx_buffer));
+    /*for (unsigned i = 0; i < statusBufferSize; ++i) {
+        std::cout << (int)statusBuffer[i] << " ";
+    }
+    std::cout << std::endl;*/
 
-        if (ret < 0) {
-            // To do: fix problem where the transfer of the updated rx_signals is skipped by this continue
-            rx_signals.read_error_count++;
-            continue;
-        }
-        
-        uint32 nbytes = static_cast<uint32>(ret);
-        rx_signals.received_byte_count += nbytes;
-        
-        uint32 nbytes_queued = rx_buffer.queue(temp_rx_buffer, nbytes);
-        rx_signals.discarded_byte_count += (nbytes - nbytes_queued);
-
-        // The rx_buffer could contain at most STM32_BUFSIZE / DataFrame::RX_FRAME_SIZE messages for 
-        // processing. In principle there should be no more than one message available, since we 
-        // process received bytes immediately. However, if this thread were starved of CPU time, 
-        // this would not be the case, and we would need to process multiple buffered messages to
-        // catch up - hence this loop
-        bool new_frames_received = false;
-        for (uint32 frame = 0; frame < kBufferSize / DataFrame::RX_FRAME_SIZE; frame++) {
-            // Sanitise the rx_buffer - delete any leading rogue bytes that cannot be part of an STM32
-            // Rx data frame
-           rx_signals.discarded_byte_count += DataFrame::SanitiseRxBuffer(rx_buffer);
-
-            //DataFrame::RxDataFrame dataframe;
-            //printf("Checkinng");
-            if (DataFrame::GetNextRxDataFrame(rx_buffer, rx_signals.dataframe)) {
-                rx_signals.message_count++;
-                rx_signals.message_rx_time = HighResolutionTimer::Counter();
-                new_frames_received = true;
-            } else {
-                break;
-            }
-        }
-
-        if (new_frames_received) {
-            rx_signals.rx_buffer_occupancy = rx_buffer.count();
-            counter++;
-            return true;
-        }
-    }*/
+    return ok;
 }
 
 bool MotorSTM32::TxSynchronise() {
-	return true;//TODO
+    if (command != 17) {
+        return true;
+    }
 	MARTe::uint8 dataBuff[kCommandSize];
 	// Set command ID.
-	dataBuff[0] = 17;
+	dataBuff[0] = command;
 	// Set device ID.
 	dataBuff[1] = 0;
-	serializeInt32(data, dataBuff + 2);
+	serializeInt32(commandParameter, dataBuff + 2);
+    // TODO create write function that retries if not everything is sent
     /*int ret = */write(serialFd, dataBuff, sizeof(dataBuff));
 
 	MARTe::uint8 responseBuff[kCommandResponseSize];
-    /*ret =*/ read(serialFd, responseBuff, sizeof(responseBuff));
+	bool ok = ReadSerialConnection(responseBuff, sizeof(responseBuff));
 
-    return true;
+    /*for (unsigned i = 0; i < kCommandResponseSize; ++i) {
+        std::cout << (int)responseBuff[i] << " ";
+    }
+    std::cout << std::endl;*/
+
+    return ok;
+}
+
+bool MotorSTM32::ReadSerialConnection(MARTe::uint8* destination,
+                                      unsigned int size) {
+    unsigned int dataRead = 0;
+    for (int i = 0; i < 20; ++i) {
+        ssize_t ret = read(serialFd, destination + dataRead, size - dataRead);
+        if (ret < 0) {
+            // TODO log error?
+            return false;
+        }
+        dataRead += ret;
+        if (dataRead == size) {
+            return true;
+        }
+    }
+    // TODO log error?
+    return false;
 }
 
 CLASS_REGISTER(MotorSTM32, "1.0");

@@ -1,6 +1,7 @@
 OBJSX=
 
-SPB=Source/Components/DataSources.x
+SPB=Source/Components/DataSources.x \
+    Source/Components/GAMs.x
 
 MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 

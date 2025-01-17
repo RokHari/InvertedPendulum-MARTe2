@@ -127,6 +127,7 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components/GAMs/SSMGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components/GAMs/TriggerOnChangeGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components/GAMs/WaveformGAM/
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components/GAMs/MessageGAM/
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MARTe2_Components_DIR/Build/$TARGET/Components/Interfaces/SysLogger/
 
 
@@ -137,6 +138,9 @@ LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/DataSources/MotorST
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/UTCTimestampingGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/DownsamplingGAM
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/InversionGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/StartupGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/HomingGAM
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../Build/$TARGET/Components/GAMs/SwingUpGAM
 
 echo $LD_LIBRARY_PATH | sed -e's/:/\n\t/g'
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH

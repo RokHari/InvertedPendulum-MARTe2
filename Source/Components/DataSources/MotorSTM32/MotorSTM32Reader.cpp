@@ -16,23 +16,27 @@ bool MotorSTM32Reader::Init(const MARTe::SignalDirection direction,
 							MARTe::DataSourceI& dataSourceIn,
 							const MARTe::char8* const functionName,
 							void* const gamMemoryAddress) {
-    bool ret = MemoryMapSynchronisedInputBroker::Init(direction, dataSourceIn, functionName, gamMemoryAddress);
-    if (ret) {
+    bool ok = MemoryMapSynchronisedInputBroker::Init(direction, dataSourceIn, functionName, gamMemoryAddress);
+    if (ok) {
         stm32 = dynamic_cast<MotorSTM32*>(&dataSourceIn);
-        ret = (stm32 != NULL);
-        if (!ret) {
+        ok = (stm32 != NULL);
+        if (!ok) {
             REPORT_ERROR(MARTe::ErrorManagement::FatalError, "Failed dynamic_cast from "
             		"DataSourceI* to MotorSTM32*");
         }
     }
 
-    return ret;
+    return ok;
 }
 
 bool MotorSTM32Reader::Execute() {
-    stm32->RxSynchronise();
+    bool ok = stm32->RxSynchronise();
+
+    if (ok) {
+        ok = MemoryMapSynchronisedInputBroker::Execute();
+    }
     
-    return MemoryMapSynchronisedInputBroker::Execute();
+    return ok;
 }
 
 CLASS_REGISTER(MotorSTM32Reader, "1.0");

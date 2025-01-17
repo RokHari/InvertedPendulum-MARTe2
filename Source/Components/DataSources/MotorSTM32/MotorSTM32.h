@@ -140,12 +140,22 @@ public:
      */
     bool TxSynchronise();
 
+    /**
+     * @brief Read data from serial connection.
+     *
+     * @param destination Buffer into which the data is read.
+     * @param size Number of data to read.
+     */
+    bool ReadSerialConnection(MARTe::uint8* destination,
+                              unsigned int size);
+
  private:
     /**
      * File descriptor for the serial port
      */
     int serialFd;
-    MARTe::int32 data;
+    MARTe::uint8 command;
+    MARTe::int32 commandParameter;
     MARTe::uint8* statusBuffer;
     MARTe::uint32 statusBufferSize;
 };
