@@ -6,6 +6,7 @@
 
 namespace InvertedPendulum {
 
+//TODO documentation
 class HomingGAM : public MARTe::GAM, public MARTe::StatefulI {
 public:
     CLASS_REGISTER_DECLARATION()

@@ -5,6 +5,7 @@
 
 namespace InvertedPendulum {
 
+//TODO update documentation!!!
 /**
  * @brief A DataSource for reception and tranmission of ADC and DAC data frames from and to the
  * STM32 serial interface
@@ -140,22 +141,54 @@ public:
      */
     bool TxSynchronise();
 
+ private:
     /**
      * @brief Read data from serial connection.
      *
      * @param destination Buffer into which the data is read.
      * @param size Number of data to read.
+     * @return False if there was an error reading. Else true.
      */
     bool ReadSerialConnection(MARTe::uint8* destination,
                               unsigned int size);
 
- private:
+    /**
+     * @brief Write data to serial connection.
+     *
+     * @param data Buffer holding the data to be sent.
+     * @param size Number of data to send.
+     * @return False if there was an error writing. Else true.
+     */
+    bool WriteSerialConnection(MARTe::uint8* data,
+                               unsigned int size);
+
+    /**
+     * @brief Flush the socket if error flag is set.
+     *
+     * @return False if socket flush was needed and failed. Else true.
+     */
+    bool ClearSocketError();
+
+    /**
+     * @param commandId Expected command ID in the response.
+     * @param deviceId Expected device ID in the response.
+     * @param response Response to be validated.
+     *
+     * @return True if response is valid, else false.
+     */
+    bool ValidateResponse(MARTe::uint8 commandId,
+                          MARTe::uint8 deviceId,
+                          MARTe::uint8* response);
+
+    bool socketError;
     /**
      * File descriptor for the serial port
      */
     int serialFd;
     MARTe::uint8 command;
     MARTe::int32 commandParameter;
+    MARTe::float32 rtAcceleration;
+    MARTe::float32 rtPeriod;
     MARTe::uint8* statusBuffer;
     MARTe::uint32 statusBufferSize;
 };

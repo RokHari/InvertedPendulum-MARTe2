@@ -1,4 +1,5 @@
 #include "StartupGAM.h"
+#include "MotorSTM32Constants.h"
 
 #include "AdvancedErrorManagement.h"
 
@@ -72,22 +73,21 @@ bool StartupGAM::Setup() {
 
 bool StartupGAM::Execute() {
     // No command is the default output.
-    *outputCommand = 255u;
+    *outputCommand = MotorCommands::NoOp;
     *outputCommandParam = 0u;
     *outputSwitchState = 0u;
 
-    // TODO enum
-    if (*inputMotorState == 8) {
+    if (*inputMotorState == MotorState::Inactive) {
         if (moveCount == 0) {
             // Move motor on startup, to kick the pendulum of balance.
-            *outputCommand = 17u;
+            *outputCommand = MotorCommands::GoTo;
             *outputCommandParam = 60u;
             *outputSwitchState = 0u;
             ++moveCount;
         }
         else if (moveCount == 1) {
             // Move back to the 0 position.
-            *outputCommand = 17u;
+            *outputCommand = MotorCommands::GoTo;
             *outputCommandParam = 0u;
             *outputSwitchState = 1u;
             ++moveCount;

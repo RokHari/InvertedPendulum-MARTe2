@@ -5,6 +5,7 @@
 
 namespace InvertedPendulum {
 
+//TODO documentation
 class SwingUpGAM : public MARTe::GAM, public MARTe::StatefulI {
 public:
     CLASS_REGISTER_DECLARATION()

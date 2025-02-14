@@ -1,4 +1,5 @@
 #include "SwingUpGAM.h"
+#include "MotorSTM32Constants.h"
 
 #include "AdvancedErrorManagement.h"
 
@@ -142,7 +143,7 @@ bool oppositeSigns(MARTe::int32 x, MARTe::int32 y)
 
 
 bool SwingUpGAM::Execute() {
-    *outputCommand = 255u;
+    *outputCommand = MotorCommands::NoOp;
     *outputCommandParam = 0u;
     *outputSwitchState = 0u;
 
@@ -154,18 +155,13 @@ bool SwingUpGAM::Execute() {
 
     if (firstMove) {
         // Do not move the motor if it is already moving.
-        if (*inputMotorState != 8) {
+        if (*inputMotorState != MotorState::Inactive) {
             return true;
         }
         // Always give a kick to the motor at the start, to get the pendulum moving.
         firstMove = false;
-        *outputCommand = 17u;
-        if (!positiveDirection) {
-            *outputCommandParam = *inputMotorPosition + 250;
-        }
-        else {
-            *outputCommandParam = *inputMotorPosition - 250;
-        }
+        *outputCommand = MotorCommands::GoTo;
+        *outputCommandParam = *inputMotorPosition - 250;
     }
     else {
         // If we are close to the highest position (within 10 steps, move to the nest state.)
@@ -177,9 +173,10 @@ bool SwingUpGAM::Execute() {
 
         // If the pendulum crossed the bottom position, add a kick.
         if (oppositeSigns(previousEncoderPosition, normPosition)) {
+            //TODO make sure you don't go to far from the center!!!!!!!
             // Only move the motor when it's not moving.
-            if (*inputMotorState == 8) {
-                *outputCommand = 17u;
+            if (*inputMotorState == MotorState::Inactive) {
+                *outputCommand = MotorCommands::GoTo;
                 if (positiveDirection) {
                     *outputCommandParam = *inputMotorPosition + 100;
                 }

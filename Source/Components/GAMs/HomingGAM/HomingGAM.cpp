@@ -2,9 +2,6 @@
 
 #include "AdvancedErrorManagement.h"
 
-//TODO
-#include <iostream>
-
 namespace InvertedPendulum {
 
 HomingGAM::HomingGAM() : GAM(),
