@@ -61,20 +61,20 @@ bool HomingGAM::Setup() {
 }
 
 bool HomingGAM::Execute() {
+    *outputSwitchState = 0;
+
     if (counter < 3) {
         // Wait to get at least 3 measurements.
         ++counter;
-        *outputSwitchState = 0;
     }
-    else {
+    else if (counter == 3) {
         // Switch state if last 3 measurements are identical.
         if (*inputEncoderPosition == encoderPositionOld1 &&
                 *inputEncoderPosition == encoderPositionOld2) {
+            // Setting counter to 4 signaling that the GAM finished with homing procedure.
+            counter = 4;
             *outputSwitchState = 2;
             *outputEncoderPositionBottom = *inputEncoderPosition;
-        }
-        else {
-            *outputSwitchState = 0;
         }
     }
 

@@ -76,10 +76,14 @@ MotorSTM32::MotorSTM32() : DataSourceI(),
 }
 
 MotorSTM32::~MotorSTM32() {
-
     if (statusBuffer != NULL_PTR(MARTe::uint8*)) {
+        // Reset the motor control just in case.
+        command = MotorCommands::RT_EndControl;
+        TxSynchronise();
+
         delete statusBuffer;
     }
+    close(serialFd);
 }
 
 bool MotorSTM32::Initialise(MARTe::StructuredDataI& data) {
@@ -91,7 +95,7 @@ bool MotorSTM32::Initialise(MARTe::StructuredDataI& data) {
         ok = data.Read("Port", port);
         if (!ok) {
             REPORT_ERROR(MARTe::ErrorManagement::ParametersError, "No serial port has been "
-                    "specified");
+                    "specified.");
         }
     }
 
@@ -99,7 +103,7 @@ bool MotorSTM32::Initialise(MARTe::StructuredDataI& data) {
         ok = data.Read("BaudRate", baudRate);
         if (!ok) {
             REPORT_ERROR(MARTe::ErrorManagement::ParametersError, "No baud rate has been "
-                    "specified");
+                    "specified.");
         }
     }
 
@@ -243,7 +247,7 @@ bool MotorSTM32::SetConfiguredDatabase(MARTe::StructuredDataI& data) {
     if (ok) {
         ok = (GetNumberOfSignals() == 5u);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Exactly 5 signals shall be defined.");
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Exactly 6 signals shall be defined.");
         }
     }
     if (ok) {
@@ -267,31 +271,28 @@ bool MotorSTM32::SetConfiguredDatabase(MARTe::StructuredDataI& data) {
     if (ok) {
         ok = (GetSignalType(1u) == MARTe::UnsignedInteger8Bit);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Second signal shall be of type "
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Third signal shall be of type "
                     "uint8");
         }
     }
-
     if (ok) {
         ok = (GetSignalType(2u) == MARTe::SignedInteger32Bit);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Third signal shall be of type "
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Fourth signal shall be of type "
                     "int32");
         }
     }
-
     if (ok) {
         ok = (GetSignalType(3u) == MARTe::Float32Bit);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Fourth signal shall be of type "
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Fifth signal shall be of type "
                     "float32");
         }
     }
-
     if (ok) {
         ok = (GetSignalType(4u) == MARTe::Float32Bit);
         if (!ok) {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Fifth signal shall be of type "
+            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Sixth signal shall be of type "
                     "float32");
         }
     }
@@ -359,9 +360,10 @@ bool MotorSTM32::TxSynchronise() {
         return false;
     }
 
-    if (command == MotorCommands::RT_MoveMotor)
+    if (command == MotorCommands::RT_MoveMotor ||
+            command == MotorCommands::RT_EndControl)
     {
-        // No response expected on RT move command.
+        // No response expected on RT commands.
         return true;
     }
 
@@ -378,6 +380,7 @@ bool MotorSTM32::ReadSerialConnection(MARTe::uint8* destination,
                                       unsigned int size) {
     unsigned int dataRead = 0;
     for (int i = 0; i < 20; ++i) {
+        //TODO should read with a timeout and into a different buffer and only copy the data if everything is OK.
         ssize_t ret = read(serialFd, destination + dataRead, size - dataRead);
         if (ret < 0) {
             REPORT_ERROR_PARAMETERS(MARTe::ErrorManagement::CommunicationError,

@@ -185,6 +185,7 @@ public:
      * File descriptor for the serial port
      */
     int serialFd;
+
     MARTe::uint8 command;
     MARTe::int32 commandParameter;
     MARTe::float32 rtAcceleration;

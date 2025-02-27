@@ -1,4 +1,4 @@
-OBJSX=SwingUpGAM.x
+OBJSX=ResetGAM.x
 
 PACKAGE=Components/GAMs
 
@@ -26,8 +26,8 @@ INCLUDES += -I$(MARTe2_DIR)/Source/Core/FileSystem/L3Streams
 INCLUDES += -I$(ROOT_DIR)/Source/Components/DataSources/MotorSTM32
 
 all: $(OBJS) $(SUBPROJ) \
-	$(BUILD_DIR)/SwingUpGAM$(LIBEXT)\
-    $(BUILD_DIR)/SwingUpGAM$(DLLEXT)\
+	$(BUILD_DIR)/ResetGAM$(LIBEXT)\
+    $(BUILD_DIR)/ResetGAM$(DLLEXT)\
     
 
 include depends.$(TARGET)
