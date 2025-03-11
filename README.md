@@ -1,6 +1,8 @@
 # MARTe2 Inverted Pendulum
 
-Repository containing MARTe2 code for balancing a rotary inverted pendulum edukit.
+Repository containing MARTe2 code for balancing a rotary inverted pendulum Edukit.
+
+[Please view this Web site for complete information on Edukit](https://sites.google.com/view/ucla-st-motor-control/home)
 
 ## Description
 
@@ -26,7 +28,7 @@ $ make -f Makefile.x86-linux
 $ export MARTe2_Components_DIR=$(pwd)
 ```
 
-Clone and build this repositorty. Linux build command in the root directory of the cloned project:
+Clone and build this repository. Linux build command in the root directory of the cloned project:
 
 ```
 $ make -f Makefile.x86-linux
@@ -34,7 +36,7 @@ $ make -f Makefile.x86-linux
 
 ## Run
 
-Upload the corresponding STM32 code to the edukit. TODO: link to a "permanent" InvertedPendulum-STM32 repository.
+Upload the corresponding STM32 code to the Edukit. TODO: link to a "permanent" InvertedPendulum-STM32 repository.
 
 Connect the STM32 to a computer with the USB cable.
 
