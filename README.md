@@ -42,6 +42,6 @@ Connect the STM32 to a computer with the USB cable.
 
 Set the correct device file (`Port` configuration of the `MotorSTM32` data source in `Configurations/Pendulum.cfg`).
 
-Navigate to `Startup/` directory withing the project and execute the following command:
+Navigate to `Startup/` directory within the project and execute the following command:
 
 `sudo -E ./Main.sh -l RealTimeLoader -f ../Configurations/Pendulum.cfg -m StateMachine::START`
