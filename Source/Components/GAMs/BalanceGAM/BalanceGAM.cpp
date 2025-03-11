@@ -4,8 +4,7 @@
 #include "AdvancedErrorManagement.h"
 
 #include <algorithm>
-//TODO remove debugging
-#include <iostream>
+
 namespace InvertedPendulum {
 
 namespace {
@@ -412,7 +411,6 @@ void BalanceGAM::Balance(MARTe::float32 rtPeriod) {
     if (std::abs(*inputMotorPosition) > motorStepsInThirdOfCircle) {
         *outputSwitchState = 3u;
         exit = true;
-        std::cout << "motor out of position " << std::endl;
         return;
     }
 
@@ -434,7 +432,6 @@ void BalanceGAM::Balance(MARTe::float32 rtPeriod) {
     if (std::abs(encoderPositionRad) > 0.15f) {
         *outputSwitchState = 3u;
         exit = true;
-        std::cout << "encoder unbalanced " << std::endl;
         return;
     }
 
@@ -442,12 +439,6 @@ void BalanceGAM::Balance(MARTe::float32 rtPeriod) {
             k2 * encoderPositionRad +
             k3 * motorSpeedRad +
             k4 * encoderSpeedRad;
-
-    std::cout << "motorPositionRad " << motorPositionRad << std::endl;
-    std::cout << "encoderPositionRad " << encoderPositionRad << std::endl;
-    std::cout << "motorSpeedRad " << motorSpeedRad << std::endl;
-    std::cout << "encoderSpeedRad " << encoderSpeedRad << std::endl;
-    std::cout << "RT acc " << radiansToMotorSteps(acceleration) << std::endl;
 
     *outputRtAcc = radiansToMotorSteps(acceleration);
     *outputCommand = MotorCommands::RT_MoveMotor;
