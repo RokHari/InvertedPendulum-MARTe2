@@ -124,7 +124,6 @@ BalanceGAM::BalanceGAM() : GAM(),
                            inputPrevMotorPosition(NULL_PTR(MARTe::int32*)),
                            inputPrevAbsoluteTime(NULL_PTR(MARTe::uint64*)),
                            inputEncoderPositionBottom(NULL_PTR(MARTe::uint32*)),
-                           inputEnableBalance(NULL_PTR(MARTe::uint8*)),
                            outputCommand(NULL_PTR(MARTe::uint8*)),
                            outputCommandParam(NULL_PTR(MARTe::int32*)),
                            outputRtAcc(NULL_PTR(MARTe::float32*)),
@@ -180,9 +179,9 @@ bool BalanceGAM::Initialise(MARTe::StructuredDataI& data) {
 
 bool BalanceGAM::Setup() {
     // Validate input signals
-    bool ok = GetNumberOfInputSignals() == 9;
+    bool ok = GetNumberOfInputSignals() == 8;
     if (!ok) {
-        REPORT_ERROR(MARTe::ErrorManagement::ParametersError, "Number of input signals must be 9.");
+        REPORT_ERROR(MARTe::ErrorManagement::ParametersError, "Number of input signals must be 8.");
     }
     if (ok) {
         ok = GetSignalType(MARTe::InputSignals, 0u) == MARTe::UnsignedInteger8Bit;
@@ -264,16 +263,6 @@ bool BalanceGAM::Setup() {
                     "uint32");
         }
     }
-    if (ok) {
-        ok = GetSignalType(MARTe::InputSignals, 8u) == MARTe::UnsignedInteger8Bit;
-        if (ok) {
-            inputEnableBalance = static_cast<MARTe::uint8*>(GetInputSignalMemory(8u));
-        }
-        else {
-            REPORT_ERROR(MARTe::ErrorManagement::InitialisationError, "Ninth input signal shall be of type "
-                    "uint8");
-        }
-    }
     // Validate output signals
     if (ok) {
         bool ok = GetNumberOfOutputSignals() == 5;
@@ -352,7 +341,7 @@ bool BalanceGAM::Execute() {
     if (!balanceEnabled) {
         SwingUp();
     }
-    // Else if not used here FOR A REASON!!! (SwingUp function changes its value.)
+    // Else if not used here FOR A GOOD REASON!!! (SwingUp function changes its value.)
     if (balanceEnabled) {
         Balance(rtPeriod);
     }
@@ -395,7 +384,7 @@ void BalanceGAM::SwingUp() {
 
         // When we are close to the top position, reduce the kick strength.
         if (std::abs(normPosition) > encoderStepsInHalfCircle - 220) {
-            swingUpKick = 70;
+            swingUpKick = 75;
         }
 
         // If the pendulum crossed the bottom position, add a kick.

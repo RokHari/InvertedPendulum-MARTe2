@@ -7,6 +7,9 @@
 
 namespace InvertedPendulum {
 
+/**
+ * @brief A reader broker for MotorSTM32 data source.
+ */
 class MotorSTM32Reader : public MARTe::MemoryMapSynchronisedInputBroker {
  public:
     CLASS_REGISTER_DECLARATION();

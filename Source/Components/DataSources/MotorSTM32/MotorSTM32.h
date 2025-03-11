@@ -5,93 +5,44 @@
 
 namespace InvertedPendulum {
 
-//TODO update documentation!!!
 /**
- * @brief A DataSource for reception and tranmission of ADC and DAC data frames from and to the
- * STM32 serial interface
+ * @brief A DataSource for sending motor commands to STM32 and reading the motor status.
  * 
- * @details The STM32 performs a blocking read of a serial port. It waits until a fixed number
- * of characters have been received, and then emits the characters as a input signal.
+ * @details The MotorSTM32 sends a command over the serial port, and if needed waits for a reponse
+ * in a blocking way. The only supported commands are:
+ *     - Got to absolute position (MotorCommands::GoTo)
+ *     - Real-time control: apply acceleration to the motor (MotorCommands::RT_MoveMotor)
+ *     - End real-time control (MotorCommands::RT_EndControl)
+ * Once a real-time control command (MotorCommands::RT_MoveMotor) is issued, an end real-time control
+ * command (MotorCommands::RT_EndControl) must be executed before any other motor commands can be used.
  * 
- * The DataSource shall have the following configuration (the object name `STM32` is an example - 
- * it is arbitrary):
+ * The configuration syntax is (names are only given as an example):
  * <pre>
  * +STM32 = {
- *     Class = STM32
- *     Port = "/dev/serial0"
- *     BaudRate = 115200
- *     Signals = {
- *         ReceivedByteCount = {
- *             Type = uint32
+ *     Class = MotorSTM32
+ *     Port = "/dev/ttyACM0" // Compulsory. Must be set to the device file of the SMT32.
+ *     BaudRate = 230400 // Compulsory. Use the same value as is used for baud rate in the STM32 code.
+ *     Signals = { // Order of signals is important.
+ *         Status = { // Compulsory output signal. Signal containing motor status.
+ *             Type = uint8 // Type must be uint8.
+ *             NumberOfElements = 9 // Number of bytes in status response.
+ *             NumberOfDimensions = 1 // Dimensions must be set to 1.
  *         }
- *         DiscardedByteCount = {
- *             Type = uint32
+ *         Command = { // Compulsory input signal. Three supported commands (see details).
+ *             Type = uint8 // Type must be uint8.
  *         }
- *         ReadErrorCount = {
- *             Type = uint32
+ *         CommandParameter = { // Compulsory input signal. Parameter for the MotorCommands::GoTo command (absolute position in steps).
+ *             Type = int32 // Type must be int32.
  *         }
- *         MessageCount = {
- *             Type = uint32
+ *         RtAcc = { // Compulsory input signal. Parameter for the MotorCommands::RT_MoveMotor command (acceleration in steps per second squared).
+ *             Type = float32 // Type must be float32.
  *         }
- *         MessageRxTime = {
- *             Type = uint64
+ *         RtPeriod = { // Compulsory input signal. Parameter for the MotorCommands::RT_MoveMotor command (real-time period in seconds).
+ *             Type = float32 // Type must be float32.
  *         }
- *         MessageTxTime = {
- *             Type = uint64
- *         }
- *         RxBufferOccupancy = {
- *             Type = uint32
- *         }
- *         ADCTime = {
- *             Type = uint32
- *         }
- *         PPS1Time = {
- *             Type = uint32
- *         }
- *         PPS2Time = {
- *             Type = uint32
- *         }
- *         ADC1Data = {
- *             Type = uint16
- *         }
- *         ADC2Data = {
- *             Type = uint16
- *         }
- *         DAC1Data = {
- *             Type = uint16
- *         }
- *         DAC2Data = {
- *             Type = uint16
- *         }
- *    }
+ *     }
  * }
  * </pre>
- * 
- * The Port is the path to the serial port device within the filesystem. The BaudRate is the data
- * speed that the DataSource will configure. 
- * 
- * The following signals must be defined:
- * 
- *  - ReceivedByteCount: The total number of bytes received on the serial port
- *  - DiscardedByteCount: The toal number of bytes discarded on the serial port. Bytes are discarded
- *    if the DataSource cannot assign them to a STM32 Rx data frame. This may be due to partial messages
- *    in the serial port buffer when the DataSource starts execution, or corrupted messages.
- *  - ReadErrorCount: The number of read errors received on reading the serial port. Read errors 
- *    correspond to the read system call returning a negative number. 
- *  - MessageCount: The number of STM32 data frames received
- *  - MessageRxTime: The (local) time at which the message was extracted from the receive buffer
- *  - MessageTxTime: The (local) time at which the *previous* message was sent to the STM32
- *  - RxBufferOccupancy: The number of bytes remaining in the receive buffer
- *  - PPS1Time: The STM32 timestamp of the first PPS signal
- *  - PPS2Time: The STM32 timestamp of the second PPS signal
- *  - ADC1Data: The first ADC data value
- *  - ADC2Data: The second ADC data value
- *  - DAC1Data: The first DAC data value
- *  - DAC2Data: The second DAC data value
- * 
- * Note that any characteristics of the serial port which are not covered by the configuration 
- * above (e.g. parity, number of data bits) will retain whatever default settings are defined
- * for the serial port.
  */
 class MotorSTM32 : public MARTe::DataSourceI {
 public:
